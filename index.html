@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Калькулятор накладного ВСП</title>
+<meta name="description" content="Електричний розрахунок накладного трансформаторного вихрострумового перетворювача: робоча частота, глибина проникнення, струм збудження, напруга холостого ходу й внесена напруга.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <p class="eyebrow">Неруйнівний контроль · вихрострумовий метод</p>
+  <h1>Калькулятор накладного ВСП</h1>
+  <p class="lead">Орієнтовний електричний розрахунок накладного трансформаторного вихрострумового перетворювача:
+    робоча частота, глибина проникнення, струм збудження, напруга холостого ходу та внесена напруга.
+    Змінюйте параметри — результати оновлюються одразу.</p>
+</header>
+
+<main>
+  <form id="f" class="card" autocomplete="off">
+    <fieldset>
+      <legend>Об'єкт контролю</legend>
+      <label><span>γ, МСм/м <i>питома електропровідність ОК</i></span>
+        <input name="gamma" type="number" step="any" value="35" list="materials"></label>
+      <label><span>D<sub>ок</sub>, мм <i>діаметр кривизни ОК; порожньо — площина</i></span>
+        <input name="Dok" type="number" step="any" value="200"></label>
+      <label><span>β <i>узагальнений параметр</i></span>
+        <input name="beta" type="number" step="any" value="3.5" min="3.5" max="10"><small>рек. 3,5 – 10 · (2.2)</small></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Обмотка збудження</legend>
+      <label><span>D<sub>ср1</sub>, мм <i>середній діаметр</i></span>
+        <input name="D1" type="number" step="any" value="20" max="20"><small id="hD1"></small></label>
+      <label><span>L, мм <i>аксіальна довжина</i></span>
+        <input name="L" type="number" step="any" value="4" min="3" max="6"><small id="hL"></small></label>
+      <label><span>d<sub>1</sub>, мм <i>діаметр дроту</i></span>
+        <input name="d1" type="number" step="any" value="0.1" min="0.1" max="0.8"><small>рек. 0,1 – 0,8 мм · (2.6)</small></label>
+      <label><span>W<sub>1</sub> <i>кількість витків</i></span>
+        <input name="W1" type="number" step="1" value="40" min="10" max="50"><small>рек. 10 – 50 · (2.7)</small></label>
+      <label><span>ρ, Ом·мм²/м <i>питомий опір дроту (мідь)</i></span>
+        <input name="rho" type="number" step="any" value="0.0175"></label>
+      <label><span>λ, Вт/(м²·°C) <i>коефіцієнт тепловіддачі</i></span>
+        <input name="lambda" type="number" step="any" value="10" min="8" max="12"><small>рек. 8 – 12 · (2.9)</small></label>
+      <label><span>[θ]<sub>д</sub>, °C <i>допустимий перегрів</i></span>
+        <input name="theta" type="number" step="any" value="5"></label>
+      <label><span>k <i>запас за струмом, I = k·I<sub>пр</sub></i></span>
+        <input name="k" type="number" step="any" value="0.9" min="0.85" max="0.9"><small>рек. 0,85 – 0,9 · (2.8)</small></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Вимірювальна обмотка</legend>
+      <label><span>D<sub>ср2</sub>, мм <i>середній діаметр</i></span>
+        <input name="D2" type="number" step="any" value="20"></label>
+      <label><span>W<sub>2</sub> <i>кількість витків</i></span>
+        <input name="W2" type="number" step="1" value="100" min="50" max="100"><small>рек. 50 – 100 · (2.12)</small></label>
+      <label><span>μ <i>відносна магнітна проникність осердя; 1 — без осердя</i></span>
+        <input name="mu" type="number" step="any" value="1"></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Режим контролю</legend>
+      <label><span>I, мА <i>робочий струм збудження</i></span>
+        <input name="I" type="number" step="any" value="2.85" min="0"><small><span id="hI"></span> <button type="button" id="useIrec">взяти k·I<sub>пр</sub></button></small></label>
+      <p class="note">k·I<sub>пр</sub> — лише теплова межа (2.8); робочий струм обрано значно меншим, щоб обмотка не нагрівалася й параметри ВСП не дрейфували під час сканування, а малий рівень сигналу компенсує підсилення вимірювального каналу.</p>
+      <label><span>h<sub>1</sub>, мм <i>зазор обмотка збудження — ОК</i></span>
+        <input name="h1" type="number" step="any" value="0.2"></label>
+      <label><span>h<sub>2</sub>, мм <i>відстань вимірювальна обмотка — ОК</i></span>
+        <input name="h2" type="number" step="any" value="4"></label>
+      <label class="check"><input name="auto" type="checkbox" checked>
+        <span>U*<sub>вн</sub> розрахувати аналітично <i>крива h* = 0,01 годографа рис. 2.6; без позначки — ввести вручну (у дисертації зчитано 0,625 − j0,625)</i></span></label>
+      <label><span>Re U*<sub>вн</sub> <i>відносна внесена напруга</i></span>
+        <input name="re" type="number" step="any" value="0.625"></label>
+      <label><span>Im U*<sub>вн</sub> <i>відносна внесена напруга</i></span>
+        <input name="im" type="number" step="any" value="-0.625"></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Вимірювальний канал і сканування</legend>
+      <label><span>U<sub>АЦП</sub>, В <i>вхідний діапазон АЦП ±U; типове значення</i></span>
+        <input name="Uadc" type="number" step="any" value="5"></label>
+      <label><span>n, біт <i>розрядність АЦП; типове значення</i></span>
+        <input name="bits" type="number" step="1" value="16"></label>
+      <label><span>f<sub>д</sub>, кГц <i>частота дискретизації; розд. 3.1: T<sub>д</sub> = 10<sup>−5</sup> с</i></span>
+        <input name="fs" type="number" step="any" value="100"><small id="hFs"></small></label>
+      <label><span>N <i>відліків у вибірці, тобто на одну оцінку амплітуди й фази (розд. 3.1)</i></span>
+        <input name="N" type="number" step="1" value="1700"><small id="hN"></small></label>
+      <label><span>l<sub>деф</sub>, мм <i>довжина дефекту вздовж сканування</i></span>
+        <input name="ldef" type="number" step="any" value="1"></label>
+    </fieldset>
+
+    <button type="reset">↺ Значення з дисертації</button>
+    <datalist id="materials">
+      <option value="35" label="Алюміній (як у дисертації)">
+      <option value="58" label="Мідь">
+      <option value="17.5" label="Дюралюміній Д16Т">
+      <option value="15" label="Латунь">
+      <option value="1.4" label="Сталь 12Х18Н10Т">
+      <option value="0.6" label="Титановий сплав ВТ6">
+    </datalist>
+  </form>
+
+  <section class="results" aria-live="polite">
+    <div class="kpis">
+      <div class="kpi"><span>Робоча частота f</span><output data-o="f"></output><small>(2.13)</small></div>
+      <div class="kpi"><span>Глибина проникнення δ</span><output data-o="delta"></output><small>(2.14)</small></div>
+      <div class="kpi"><span>Струм збудження I</span><output data-o="I"></output>
+        <meter id="mI" min="0" optimum="0" aria-label="Струм відносно теплової межі I_пр"></meter>
+        <small><span data-o="Ipct"></span> від I<sub>пр</sub> = <span data-o="Ipr"></span> · (2.9)</small></div>
+      <div class="kpi"><span>Напруга холостого ходу</span><output data-o="Uxx"></output><small>U<sub>х.х.</sub> · (2.15)</small></div>
+    </div>
+
+    <div class="card">
+      <h2>Переріз ВСП над об'єктом контролю, у масштабі</h2>
+      <svg id="geo" viewBox="0 0 560 260" role="img" aria-label="Переріз накладного ВСП над об'єктом контролю з глибиною проникнення вихрових струмів">
+        <defs>
+          <linearGradient id="eddy" gradientUnits="userSpaceOnUse" x1="0" x2="0">
+            <stop offset="0" stop-opacity=".7"/><stop offset=".333" stop-opacity=".26"/>
+            <stop offset=".667" stop-opacity=".095"/><stop offset="1" stop-opacity=".035"/>
+          </linearGradient>
+        </defs>
+        <path id="g-ok" class="ok"/><path id="g-eddy" fill="url(#eddy)"/>
+        <path id="g-tan" class="thin"/><path id="g-delta" class="dash"/><line id="g-axis" class="thin"/>
+        <g id="g-coils"></g><g id="g-dims" class="dim"></g>
+      </svg>
+      <p class="note"><span class="sw e0"></span>обмотка збудження <span class="sw out"></span>вимірювальна обмотка <span class="sw vn"></span>вихрові струми, густина ∝ e<sup>−z/δ</sup></p>
+      <p class="note" id="geoNote"></p>
+    </div>
+
+    <div class="card">
+      <h2>Вибір режиму: f і δ залежно від β</h2>
+      <p class="note" id="bRead"></p>
+      <h3 class="chart-t">Робоча частота f, Гц · (2.13)</h3>
+      <svg id="ch-f" class="chart" viewBox="0 0 560 130" role="img" aria-label="Робоча частота залежно від β"></svg>
+      <h3 class="chart-t">Глибина проникнення δ, мм · (2.14)</h3>
+      <svg id="ch-d" class="chart" viewBox="0 0 560 150" role="img" aria-label="Глибина проникнення залежно від β"></svg>
+    </div>
+
+    <div class="card">
+      <h2>Годограф внесеної напруги U*<sub>вн</sub></h2>
+      <div class="hodo">
+        <svg id="hodo" viewBox="0 0 220 470" role="img" aria-label="Годограф відносної внесеної напруги: криві сталого зазору h* і лінії сталого β, поточна робоча точка"></svg>
+        <div>
+          <p class="note" id="hRead"></p>
+          <ul class="legend">
+            <li class="vn"><span>У розрахунку (2.17): β = <span data-o="beta"></span>, h* = 0,01</span><b data-o="Ustar"></b></li>
+            <li class="ring"><span>Реальний зазор: h* = (h<sub>1</sub> + h<sub>2</sub>) / R = <span data-o="hReal"></span></span><b data-o="UstarReal"></b></li>
+          </ul>
+          <p class="note">Ослаблення сигналу зазором: аналітично <b data-o="attA"></b>, за множником e<sup>−3ξ</sup> у (2.17) — <b data-o="attE"></b>.</p>
+          <p class="note">Кут між годографами зазору й електропровідності в робочій точці: <b data-o="angle"></b>. Що ближче до 90°, то легше за фазою відокремити зміну γ (і дефект) від коливань зазору.</p>
+          <p class="note">Суцільні криві — сталий зазор h* (змінюється β, тобто γ або f), штрихові — сталий β (змінюється зазор). Годограф побудовано для R<sub>в</sub> = R<sub>и</sub>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Вихідна напруга ВСП</h2>
+      <div class="phasor">
+        <svg viewBox="-120 -120 240 240" role="img" aria-label="Векторна діаграма: E₀ + U вн = U вих">
+          <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker></defs>
+          <g class="axes"><line x1="-115" y1="0" x2="115" y2="0"/><line x1="0" y1="115" x2="0" y2="-115"/><text x="100" y="-6">Re</text><text x="6" y="-106">jIm</text></g>
+          <line id="v-e0" class="vec e0" marker-end="url(#arr)"/>
+          <line id="v-vn" class="vec vn" marker-end="url(#arr)"/>
+          <line id="v-out" class="vec out" marker-end="url(#arr)"/>
+        </svg>
+        <ul class="legend">
+          <li class="e0"><span>E<sub>0</sub> — без ОК · (2.18)</span><b data-o="E0"></b><span data-o="E0p"></span></li>
+          <li class="vn"><span>U<sub>вн</sub> — внесена · (2.17)</span><b data-o="Uvn"></b><span data-o="Uvnp"></span></li>
+          <li class="out"><span>U<sub>вих</sub> = E<sub>0</sub> + U<sub>вн</sub> · (2.20)</span><b data-o="Uout"></b><span data-o="Uoutp"></span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Вимірювальний канал і швидкість сканування</h2>
+      <div class="kpis">
+        <div class="kpi"><span>Підсилення каналу K</span><output data-o="K"></output><small data-o="KdB"></small></div>
+        <div class="kpi"><span>Макс. швидкість сканування</span><output data-o="v"></output><small data-o="vLim"></small></div>
+      </div>
+      <h3 class="chart-t">Сигнал при проходженні дефекту на v<sub>max</sub> (форма умовна)</h3>
+      <svg id="ch-t" class="chart" viewBox="0 0 560 132" role="img" aria-label="Сигнал ВСП у часі під час проходження дефекту з розбиттям на вибірки"></svg>
+      <p class="note" id="tNote"></p>
+      <div class="scroll">
+        <table>
+          <thead><tr><th></th><th>Величина</th><th>Формула</th><th>Значення</th></tr></thead>
+          <tbody>
+            <tr><td></td><td>Найбільший сигнал</td><td class="fx">U<sub>max</sub> = max(|E<sub>0</sub>|, |U<sub>вих</sub>|)</td><td data-o="Umax"></td></tr>
+            <tr><td></td><td>Підсилення до 80 % діапазону АЦП</td><td class="fx">K = 0,8·U<sub>АЦП</sub> / U<sub>max</sub></td><td data-o="K"></td></tr>
+            <tr><td></td><td>Крок квантування / на вході</td><td class="fx">q = 2U<sub>АЦП</sub> / 2<sup>n</sup>; q / K</td><td data-o="q"></td></tr>
+            <tr><td>(3.1)</td><td>Відліків на період</td><td class="fx">f<sub>д</sub> / f</td><td data-o="ppp"></td></tr>
+            <tr><td>(3.1)</td><td>Тривалість вибірки / періодів у ній</td><td class="fx">T = N / f<sub>д</sub>; f·T</td><td data-o="T"></td></tr>
+            <tr><td></td><td>Зона чутливості</td><td class="fx">l<sub>еф</sub> = l<sub>деф</sub> + D<sub>ср1</sub></td><td data-o="leff"></td></tr>
+            <tr><td></td><td>Межа за несучою (≥ 10 періодів)</td><td class="fx">v<sub>1</sub> = f·l<sub>еф</sub> / 10</td><td data-o="v1"></td></tr>
+            <tr><td></td><td>Межа за вибіркою (≥ 3 оцінки)</td><td class="fx">v<sub>2</sub> = l<sub>еф</sub>·f<sub>д</sub> / (3N)</td><td data-o="v2"></td></tr>
+            <tr><td></td><td>Смуга вимірювального каналу</td><td class="fx">f ± Δf, Δf = v<sub>max</sub> / l<sub>еф</sub></td><td data-o="band"></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">80 %, 10 періодів і 3 оцінки на дефект — інженерні правила, а не дані дисертації. Підсилення обмежує E<sub>0</sub>; якщо балансуванням компенсувати E<sub>0</sub>, підсилювати можна лише U<sub>вн</sub>.</p>
+    </div>
+
+    <div class="card">
+      <h2>Покроковий розрахунок</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>№</th><th>Величина</th><th>Формула</th><th>Значення</th></tr></thead>
+          <tbody>
+            <tr><td></td><td>Опір обмотки збудження</td><td class="fx">R = 4ρW<sub>1</sub>D<sub>ср1</sub> / d<sub>1</sub>²</td><td data-o="R"></td></tr>
+            <tr><td>(2.10)</td><td>Площа охолодження</td><td class="fx">S<sub>охл</sub> = πD<sub>ср1</sub>(L + D<sub>ср1</sub>/2)</td><td data-o="S"></td></tr>
+            <tr><td>(2.9)</td><td>Граничний струм</td><td class="fx">I<sub>пр</sub> = √(λS<sub>охл</sub>[θ]<sub>д</sub> / R)</td><td data-o="Ipr"></td></tr>
+            <tr><td>(2.8)</td><td>Рекомендований струм</td><td class="fx">I = k·I<sub>пр</sub></td><td data-o="Irec"></td></tr>
+            <tr><td>(2.13)</td><td>Робоча частота</td><td class="fx">f = 2β² / (πD<sub>ср1</sub>²γμ<sub>0</sub>)</td><td data-o="f"></td></tr>
+            <tr><td>(2.14)</td><td>Глибина проникнення</td><td class="fx">δ = √(2 / (ωγμ<sub>0</sub>))</td><td data-o="delta"></td></tr>
+            <tr><td>(2.16)</td><td>Співвідношення діаметрів</td><td class="fx">m = D<sub>ср1</sub> / D<sub>ср2</sub></td><td data-o="m"></td></tr>
+            <tr><td>(2.15)</td><td>Напруга холостого ходу</td><td class="fx">U<sub>х.х.</sub> = 1,35ωμμ<sub>0</sub>W<sub>1</sub>W<sub>2</sub>(m − 0,3)I√(D<sub>ср1</sub>D<sub>ср2</sub>)</td><td data-o="Uxx"></td></tr>
+            <tr><td>(2.17)</td><td>Еквівалентний діаметр</td><td class="fx">D<sub>е</sub> = D<sub>ср1</sub> + 1,5h<sub>1</sub></td><td data-o="De"></td></tr>
+            <tr><td>(2.17)</td><td>Відносна відстань</td><td class="fx">ξ = (h<sub>1</sub> + h<sub>2</sub>) / D<sub>е</sub></td><td data-o="xi"></td></tr>
+            <tr><td>рис. 2.6</td><td>Відносна внесена напруга</td><td class="fx">U*<sub>вн</sub> = jπ∫<sub>0</sub><sup>∞</sup>J<sub>1</sub>²(x)e<sup>−xh*</sup>(x − q)/(x + q)dx, q = √(x² + jβ²)</td><td data-o="Ustar"></td></tr>
+            <tr><td>(2.17)</td><td>Внесена напруга</td><td class="fx">U<sub>вн</sub> = U<sub>х.х.</sub>(Re U*<sub>вн</sub> + j Im U*<sub>вн</sub>)e<sup>−3ξ</sup></td><td data-o="Uvn"></td></tr>
+            <tr><td>(2.19)</td><td>Відстань між обмотками</td><td class="fx">c = h<sub>2</sub> − h<sub>1</sub></td><td data-o="c"></td></tr>
+            <tr><td>(2.18)</td><td>Напруга без ОК</td><td class="fx">E<sub>0</sub> = jU<sub>х.х.</sub>e<sup>−3c/D<sub>ср1</sub></sup></td><td data-o="E0"></td></tr>
+            <tr><td>(2.20)</td><td>Вихідна напруга</td><td class="fx">U<sub>вих</sub> = E<sub>0</sub> + U<sub>вн</sub></td><td data-o="Uout"></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<section class="about" id="about">
+  <div class="card">
+    <h2>Про модель і обмеження</h2>
+    <p>Калькулятор відтворює методику розділу 2.2: формули (2.3)–(2.20) з тими самими позначеннями й номерами.
+      Додатково він рахує відносну внесену напругу U*<sub>вн</sub> аналітично й оцінює вимоги до вимірювального каналу.</p>
+    <ul>
+      <li><b>U*<sub>вн</sub></b> — внесена напруга двох тонких співвісних витків однакового радіуса над немагнітним провідним
+        півпростором (модель Додда — Діда) з нормуванням рис. 2.6. Розрахунок перевірено за замкненою формулою для β → ∞ і за точками рис. 2.6.</li>
+      <li><b>Об'єкт контролю</b> вважається немагнітним (μ<sub>r</sub> = 1), однорідним і значно товщим за δ.
+        Пластини й покриття, товщина яких порівнянна з δ, модель не описує.</li>
+      <li><b>Кривизна ОК</b> входить лише в умову (2.3) та в оцінку зазору на перерізі; у розрахунку U*<sub>вн</sub> поверхня плоска.</li>
+      <li><b>Обмотки</b> розглядаються як тонкі витки, годограф побудовано для R<sub>в</sub> = R<sub>и</sub>.</li>
+      <li><b>Емпіричні формули</b> — напругу холостого ходу (2.15) і множник зазору e<sup>−3ξ</sup> у (2.17) — взято з методики без змін.
+        Порівняння множника з аналітичним ослабленням наведено біля годографа.</li>
+      <li><b>Дефект</b> окремо не моделюється: як і в методиці, його вплив прирівняно до місцевого зменшення електропровідності.</li>
+      <li><b>Вимірювальний канал:</b> 80 % діапазону АЦП, щонайменше 10 періодів несучої і 3 вибірки на дефект — інженерні правила, а не дані дисертації.</li>
+      <li><b>Точність.</b> Результати не звірено з експериментом чи розрахунком методом скінченних елементів.
+        Це орієнтовна інженерна оцінка, яка не замінює атестовану методику контролю.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <p>Методика — розділ 2.2 магістерської дисертації О. Е. Левченка «Автоматизація вихрострумової дефектоскопії об'єктів
+    зі складною геометрією поверхні», КПІ ім. Ігоря Сікорського, кафедра приладів і систем неруйнівного контролю, 2018.</p>
+</footer>
+
+<script src="calc.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

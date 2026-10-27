@@ -1,0 +1,6 @@
+{
+  "name": "eddy-current-probe-calc",
+  "private": true,
+  "license": "MIT",
+  "scripts": { "test": "node calc.test.js" }
+}
